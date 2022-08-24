@@ -1,0 +1,5 @@
+# ninja log v5
+11	1702	6830498339306685	build.ninja	64ed5be387067a30
+14	456	6829895017548791	CMakeFiles/progetto_c.dir/main.c.obj	9740acc8457c1c6a
+1	446	6829895017445474	CMakeFiles/progetto_c.dir/tetris.c.obj	1d9de69aa4544813
+457	1306	6829895025896561	progetto_c.exe	460453438efe8ba4

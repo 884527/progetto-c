@@ -13,7 +13,7 @@ void tetris_signal_quit(int);
 
 void tetris_set_ioconfig();
 
-void init(struct tetris *t,int w,int h);
+void init(struct tetris *t);
 
 void clean(struct tetris *t);
 

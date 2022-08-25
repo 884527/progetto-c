@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "tetris.h"
 int main () {
-
-    return EXIT_SUCCESS;
+    struct tetris *t;
+    init(&t);
+    print(&t);
+    return 0;
 }

@@ -1,7 +1,3 @@
-//
-// Created by Martina Feltre on 23/08/2022.
-//
-
 #ifndef PROGETTO_C_TETRIS_H
 #define PROGETTO_C_TETRIS_H
 
@@ -19,19 +15,19 @@ void clean(struct tetris *t);
 
 void print(struct tetris *t);
 
-void tetris_run(int width, int height);
+void run(int width, int height);
 
-void tetris_new_block(struct tetris *t);
+void new_block(struct tetris *t);
 
-void tetris_new_block(struct tetris *t);
+void new_block(struct tetris *t);
 
-void tetris_print_block(struct tetris *t);
+void print_block(struct tetris *t);
 
 void rotate(struct tetris *t);
 
-void tetris_gravity(struct tetris *t);
+void gravity(struct tetris *t);
 
-void tetris_fall(struct tetris *t, int l);
+void fall(struct tetris *t, int l);
 
 void check_lines(struct tetris *t);
 

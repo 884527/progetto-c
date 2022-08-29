@@ -7,6 +7,8 @@ void tetris_cleanup_io();
 
 void tetris_signal_quit(int);
 
+void prova( struct tetris *t);
+
 void tetris_set_ioconfig();
 
 void init(struct tetris *t);
@@ -15,7 +17,7 @@ void clean(struct tetris *t);
 
 void print(struct tetris *t);
 
-void run(int width, int height);
+void run();
 
 void new_block(struct tetris *t);
 

@@ -46,11 +46,12 @@ struct tetris_block blocks[] =
 
 void init (struct tetris *t) {
     t->score = 0;
-    t->wd = 19;        /** 10 + 9 spazi */
+    t->wd = 10;        /** 10 + 9 spazi */
     t->hg = 15;
     t->game = malloc(sizeof(char *)*t->wd);
+    t->gameover=0;
     int x, y;
-    for(x=0;x<19;x++) {
+    for(x=0;x<10;x++) {
         t->game[x] = malloc(sizeof(char) * t->hg);
         for (y = 0; y < 15; y++)
             t->game[x][y] = ' ';
@@ -95,8 +96,7 @@ int hittest (struct tetris *t) {
             yy = t->y +y;
             if(xx<0 || xx>=t->wd)
                 return 1;
-            if(b.data[y][x]!=' ' && (yy>=t->hg
-                || (xx<t->wd && t->game[xx][yy] != ' ')))
+            if(b.data[y][x]!=' ' && (yy>=t->hg  || (xx<t->wd && t->game[xx][yy] != ' ')))  //Controllo se c'è un altro blocco
                 return 1;
         }
     }
@@ -105,11 +105,18 @@ int hittest (struct tetris *t) {
 
 void new_block (struct tetris *t) {
     t->current = blocks [rand()%TETRAMINI];
-    t->x = (t->wd/2) - (t->current.wd/2);
-    t->y=0;
+    t->x = (t->wd/2) - (t->current.wd/2); //centro
+    t->y=0; //prima riga
 
     if(hittest(t))
         t->gameover=1;
+}
+void prova (struct tetris *t){
+    t->current = blocks[0];
+    t->x = (t->wd/2) - (t->current.wd/2); //centro
+    t->y=0; //prima riga
+
+    //gsmeover
 }
 
 void print_block (struct tetris *t) {
@@ -163,7 +170,54 @@ void check_lines (struct tetris *t) {
         }
     }
 }
+char chiediMossa()  {
+    char cmd;
+    printf("A = sinistra \n D = destra \n S = Giu \n  spazio = rilascia \n R = Ruota a destra \n");
+    cmd= getchar();
+    return cmd;
+}
 
-void run (int w, int h) {
+void run () {
+    struct tetris t;
+    char cmd;
+    int count=0;
+    init(&t);
+    new_block(&t);
+    while (t.gameover==0) {
+        count++;
+        if (count%50 == 0) {
+            print(&t);
+        }
+        if (count%350 == 0) {
+            gravity(&t);
+            check_lines(&t);
+        }
+        cmd=chiediMossa();
+        print(&t);
 
+            switch (cmd) {
+                case 'a':
+                    t.x--;
+                    if (hittest(&t))
+                        t.x++;
+                    break;
+                case 'd':
+                    t.x++;
+                    if (hittest(&t))
+                        t.x--;
+                    break;
+                case 's':
+                    gravity(&t);
+                    break;
+                case 'r':
+                    rotate(&t);
+                    break;
+            }
+        }
+
+
+    print(&t);
+    printf(" GAME OVER \n");
+
+    clean(&t);
 }

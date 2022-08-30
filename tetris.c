@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "tetris.h"
+
 #include <termmgr.h>
 struct tetris {
     char **game;
@@ -46,7 +47,7 @@ struct tetris_block blocks[] =
 
 void init (struct tetris *t) {
     t->score = 0;
-    t->wd = 10;        /** 10 + 9 spazi */
+    t->wd = 10;
     t->hg = 15;
     t->game = malloc(sizeof(char *)*t->wd);
     t->gameover=0;
@@ -104,20 +105,16 @@ int hittest (struct tetris *t) {
 }
 
 void new_block (struct tetris *t) {
-    t->current = blocks [rand()%TETRAMINI];
+    int x=3; //rand()%TETRAMINI;
+    t->current = blocks [x];
+    printf("%d",x);
     t->x = (t->wd/2) - (t->current.wd/2); //centro
     t->y=0; //prima riga
 
     if(hittest(t))
         t->gameover=1;
 }
-void prova (struct tetris *t){
-    t->current = blocks[0];
-    t->x = (t->wd/2) - (t->current.wd/2); //centro
-    t->y=0; //prima riga
 
-    //gsmeover
-}
 
 void print_block (struct tetris *t) {
     int x, y;
@@ -132,7 +129,7 @@ void print_block (struct tetris *t) {
 
 void gravity (struct tetris *t) {
     int x, y;
-    t->y++;
+    t->y+=1;
     if(hittest(t)) {
         t->y--;
         print_block(t);
@@ -151,7 +148,25 @@ void fall (struct tetris *t, int l) {
 }
 
 void rotate (struct tetris *t) {
-
+    struct tetris_block b=t->current;
+    struct tetris_block s=b;
+    int x,y;
+    b.wd=s.hg;
+    b.hg=s.wd;
+    for (x=0; x<s.wd; x++)
+        for (y=0; y<s.hg; y++) {
+            b.data[x][y]=s.data[s.hg-y-1][x];
+        }
+    x=t->x;
+    y=t->y;
+    t->x-=(b.wd-s.wd)/2;
+    t->y-=(b.hg-s.hg)/2;
+    t->current=b;
+    if (hittest(t)) {
+        t->current=s;
+        t->x=x;
+        t->y=y;
+    }
 }
 
 void check_lines (struct tetris *t) {
@@ -184,16 +199,8 @@ void run () {
     init(&t);
     new_block(&t);
     while (t.gameover==0) {
-        count++;
-        if (count%50 == 0) {
-            print(&t);
-        }
-        if (count%350 == 0) {
-            gravity(&t);
-            check_lines(&t);
-        }
-        cmd=chiediMossa();
         print(&t);
+        cmd=chiediMossa();
 
             switch (cmd) {
                 case 'a':

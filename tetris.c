@@ -76,7 +76,9 @@ void print (struct tetris *t) {
     for(y=0;y<t->hg;y++) {
         printf("|");
         for(x=0;x<t->wd;x++)
-            if(x>t->x && x<(t->x + t->current.wd) && y<(t->y + t->current.hg) && t->current.data[y-t->y][x-t->x] != ' ')
+            if(x>t->x && y>=t->y
+            && x<(t->x + t->current.wd) && y<(t->y + t->current.hg)
+            && t->current.data[y-t->y][x-t->x] != ' ')
                 printf("%c", t->current.data[y-t->y][x-t->x]);
             else
                 printf("%c", t->game[x][y]);
@@ -105,7 +107,7 @@ int hittest (struct tetris *t) {
 }
 
 void new_block (struct tetris *t) {
-    int x=3; //rand()%TETRAMINI;
+    int x=1; //rand()%TETRAMINI;
     t->current = blocks [x];
     printf("%d",x);
     t->x = (t->wd/2) - (t->current.wd/2); //centro

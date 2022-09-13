@@ -2,23 +2,26 @@
 #include <stdlib.h>
 #include "tetris.h"
 
+int bool=0;
+
 struct tetris {
-    char **game;
+    char **campo;
     int wd;     /** larghezza */
-    int hg;     /** altezza */
-    int score;
+    int hw;     /** altezza */
+    int punti;
     int gameover;
-    struct tetris_block {
+    int x;
+    int y;
+
+    struct blocco {
         char data[5][5];
         int wd;     /** larghezza */
         int hg;     /** altezza */
-        int n;
-    } current;
-    int x;
-    int y;
+        int n;      /** numero di blocchi */
+    } corr;
 };
 
-struct tetris_block blocks[] =
+struct blocco bloc[] =
         {
                 {{"##",
                          "##"},
@@ -39,22 +42,22 @@ struct tetris_block blocks[] =
                         3, 2, 20}
         };
 
-#define TETRAMINI (sizeof(blocks)/sizeof(struct tetris_block))
+#define TETRAMINI (sizeof(bloc)/sizeof(struct blocco))
 
 /**
  * inizializza il campo di gioco
  */
 void init (struct tetris *t) {
-    t->score = 0;
+    t->punti = 0;
     t->wd = 10;
-    t->hg = 15;
-    t->game = malloc(sizeof(char *)*t->wd);
+    t->hw = 15;
+    t->campo = malloc(sizeof(char *) * t->wd);
     t->gameover=0;
     int x, y;
     for(x=0;x<10;x++) {
-        t->game[x] = malloc(sizeof(char) * t->hg);
+        t->campo[x] = malloc(sizeof(char) * t->hw);
         for (y = 0; y < 15; y++)
-            t->game[x][y] = ' ';
+            t->campo[x][y] = ' ';
     }
 }
 
@@ -63,9 +66,9 @@ void init (struct tetris *t) {
  */
 void clean (struct  tetris *t) {
     int x;
-    for(x=0;x<t->wd;x++)
-        free(t->game[x]);
-    free(t->game);
+    for(x=0;x<t->wd; x++)
+        free(t->campo[x]);
+    free(t->campo);
 }
 
 /**
@@ -73,24 +76,24 @@ void clean (struct  tetris *t) {
  */
 void print (struct tetris *t) {
     int x, y;
-    printf("[SCORE: %d]\n", t->score);
-    for(x=0;x<t->wd+2;x++)
+    printf("[SCORE: %d]\n", t->punti);
+    for(x=0;x< t->wd + 2; x++)
         printf("~");
     printf("\n");
 
-    for(y=0;y<t->hg;y++) {
+    for(y=0;y<t->hw; y++) {
         printf("|");
-        for(x=0;x<t->wd;x++)
+        for(x=0;x<t->wd; x++)
             if(x>=t->x && y>=t->y
-               && x<(t->x + t->current.wd) && y<(t->y + t->current.hg)
-               && t->current.data[y-t->y][x-t->x] != ' ')
-                printf("%c", t->current.data[y-t->y][x-t->x]);
+               && x<(t->x + t->corr.wd) && y < (t->y + t->corr.hg)
+               && t->corr.data[y - t->y][x - t->x] != ' ')
+                printf("%c", t->corr.data[y - t->y][x - t->x]);
             else
-                printf("%c", t->game[x][y]);
+                printf("%c", t->campo[x][y]);
         printf("|\n");
     }
 
-    for(x=0;x<t->wd+2;x++)
+    for(x=0;x< t->wd + 2; x++)
         printf("~");
     printf("\n");
 }
@@ -98,9 +101,9 @@ void print (struct tetris *t) {
 /**
  * controlla quando il blocco corrente tocca gli altri blocchi nel campo oppure i confini del campo
  */
-int hittest (struct tetris *t) {
+int tocca (struct tetris *t) {
     int x, y, xx, yy;
-    struct tetris_block b = t->current;
+    struct blocco b = t->corr;
     for(x=0;x<b.wd;x++) {
         for(y=0;y<b.hg;y++) {
             xx = t->x +x;
@@ -108,7 +111,7 @@ int hittest (struct tetris *t) {
             if(xx<0 || xx>=t->wd)
                 return 1;
             /** controllo se c'è un altro blocco */
-            if(b.data[y][x]!=' ' && (yy>=t->hg  || (xx<t->wd && t->game[xx][yy] != ' ')))
+            if(b.data[y][x]!=' ' && (yy>=t->hw || (xx < t->wd && t->campo[xx][yy] != ' ')))
                 return 1;
         }
     }
@@ -118,21 +121,21 @@ int hittest (struct tetris *t) {
 /**
  * genera un nuovo blocco (in modo random) controllando il numero di blocchi: 20 blocchi per ogni tipo
  */
-void new_block (struct tetris *t) {
+void nuovo (struct tetris *t) {
     int exit=0, x, tot=20*5;
     while(exit==0 && tot>0) {
         x = rand() % TETRAMINI;
-        if (blocks[x].n > 0) {
-            t->current = blocks[x];
-            blocks[x].n--;
+        if (bloc[x].n > 0) {
+            t->corr = bloc[x];
+            bloc[x].n--;
             tot--;
             exit=1;
         }
     }
-    t->x = (t->wd/2) - (t->current.wd/2); //centro
+    t->x = (t->wd / 2) - (t->corr.wd / 2); //centro
     t->y=0; //prima riga
 
-    if(hittest(t))
+    if(tocca(t))
         t->gameover=1;
     if(tot==0) {
         t->gameover=1;
@@ -143,13 +146,13 @@ void new_block (struct tetris *t) {
 /**
  * stampa il blocco
  */
-void print_block (struct tetris *t) {
+void print_blocco (struct tetris *t) {
     int x, y;
-    struct tetris_block b = t->current;
+    struct blocco b = t->corr;
     for(x=0;x<b.wd;x++) {
         for(y=0;y<b.hg;y++) {
             if(b.data[y][x]!=' ')
-                t->game[t->x+x][t->y+y] = b.data[y][x];
+                t->campo[t->x + x][t->y + y] = b.data[y][x];
         }
     }
 }
@@ -157,22 +160,24 @@ void print_block (struct tetris *t) {
 /**
  * fa scendere il blocco
  */
-void gravity (struct tetris *t) {
+int giu (struct tetris *t) {
     int x, y;
     t->y+=1;
-    if(hittest(t)) {
+    if(tocca(t)) {
         t->y--;
-        print_block(t);
-        new_block(t);
+        print_blocco(t);
+        nuovo(t);
+        return !bool;
     }
+    return bool;
 }
 
 /**
  * ruota il blocco di 90 gradi
  */
-void rotate (struct tetris *t) {
-    struct tetris_block b=t->current;
-    struct tetris_block s=b;
+int ruota (struct tetris *t) {
+    struct blocco b=t->corr;
+    struct blocco s=b;
     int x,y;
     b.wd=s.hg;
     b.hg=s.wd;
@@ -184,51 +189,53 @@ void rotate (struct tetris *t) {
     y=t->y;
     t->x-=(b.wd-s.wd)/2;
     t->y-=(b.hg-s.hg)/2;
-    t->current=b;
-    if (hittest(t)) {
-        t->current=s;
+    t->corr=b;
+    if (tocca(t)) {
+        t->corr=s;
         t->x=x;
         t->y=y;
+        return !bool;
     }
+    return bool;
 }
 
 /**
  * elimina la riga completa e fa scendere le righe superiori
  */
-void fall (struct tetris *t, int l) {
+void elimina (struct tetris *t, int l) {
     int x, y;
     for(y=l;y>0;y--) {
-        for(x=0;x<t->wd;x++)
-            t->game[x][y] = t->game[x][y-1];
+        for(x=0;x<t->wd; x++)
+            t->campo[x][y] = t->campo[x][y - 1];
     }
-    for(x=0;x<t->wd;x++)
-        t->game[x][0] = ' ';
+    for(x=0;x<t->wd; x++)
+        t->campo[x][0] = ' ';
 }
 
 /**
  * controlla se ci sono righe complete da eliminare e nel caso incrementa il punteggio
  */
-void check_lines (struct tetris *t) {
+void controllo_righe (struct tetris *t) {
     int x, y, l, count=0;
     int p=1;
-    for(y=t->hg-1;y>=0;y--) {
+    for(y= t->hw - 1; y >= 0; y--) {
         l=1;
-        for(x=0;x<t->wd && l;x++) {
-            if (t->game[x][y] == ' ') {
+        for(x=0;x<t->wd && l; x++) {
+            if (t->campo[x][y] == ' ') {
                 l = 0;
                 count=0;
             }
         }
         if (l) {
             count++;
-            t->score += p;
+            t->punti += p;
             if (count == 2)    /**quando si eliminano 3 righe*/
                 p = 3;
             else if (count == 3)     /**quando si eliminano 4 righe*/
                 p = 6;
             else
                 p *= 2;       /** quando si eliminano 1 o 2 righe */
-            fall(t, y);
+            elimina(t, y);
             y++;
         }
     }
@@ -239,7 +246,7 @@ void check_lines (struct tetris *t) {
  */
 char chiediMossa()  {
     char cmd;
-    printf("Scegli la tua mossa: \na = sinistra \nd = destra \ns = giu' \nr = ruota a destra \n\n");
+    printf("Scegli la tua mossa: \nhw = sinistra \nd = destra \ns = giu' \nr = ruota hw destra \n\n");
     scanf(" %c",&cmd);
     return cmd;
 }
@@ -251,7 +258,7 @@ void run () {
     struct tetris t;
     char cmd;
     init(&t);
-    new_block(&t);
+    nuovo(&t);
     while (t.gameover==0) {
         print(&t);
         cmd=chiediMossa();
@@ -259,22 +266,22 @@ void run () {
         switch (cmd) {
             case 'a':
                 t.x--;
-                if (hittest(&t))
+                if (tocca(&t))
                     t.x++;
                 break;
             case 'd':
                 t.x++;
-                if (hittest(&t))
+                if (tocca(&t))
                     t.x--;
                 break;
             case 's':
-                gravity(&t);
+                giu(&t);
                 break;
             case 'r':
-                rotate(&t);
+                ruota(&t);
                 break;
         }
-        check_lines(&t);
+        controllo_righe(&t);
     }
 
     print(&t);
@@ -288,55 +295,61 @@ void run () {
  *     ***MODALITA' MULTI PLAYER***
  */
 
-void new_block_multi (struct tetris *t_gio, struct tetris *t_avv){
+/**
+ * genera un nuovo blocco (random), controllando se ci sono ancora blocchi disponibili
+ */
+void nuovo_multi (struct tetris *t, struct tetris *t_avv){
     int exit=0, x, tot=40*5;
     while(exit==0 && tot>0) {
         x = rand() % TETRAMINI;
-        if (blocks[x].n > 0) {
-            t_gio->current = blocks[x];
-            blocks[x].n--;
+        if (bloc[x].n > 0) {
+            t->corr = bloc[x];
+            bloc[x].n--;
             tot--;
             exit=1;
         }
     }
-    t_gio->x = (t_gio->wd/2) - (t_gio->current.wd/2); //centro
-    t_gio->y=0; //prima riga
+    t->x = (t->wd / 2) - (t->corr.wd / 2); //centro
+    t->y=0; //prima riga
 
-    if(hittest(t_gio))
-        t_gio->gameover=1;
+    if(tocca(t))
+        t->gameover=1;
     if(tot==0) {
         printf("Blocchi terminati!\n");
-        if(t_gio->score >= t_avv->score)
+        if(t->punti >= t_avv->punti)
             t_avv->gameover=1;
         else
-            t_gio->gameover=1;
+            t->gameover=1;
     }
 }
 
-
-void check_lines_multi (struct tetris *t_gio, struct tetris *t_avv) {
+/**
+ * controlla se ci sono righe complete da eliminare e in caso aumenta il punteggio o modifica il campo dell'avversario
+ * t_gio è il giocatore, t_avv è l'avversario
+ */
+void controllo_multi (struct tetris *t_gio, struct tetris *t_avv) {
     int x, y, l, count=0;
     int p=1;
-    for(y=t_gio->hg-1;y>=0;y--) {
+    for(y= t_gio->hw - 1; y >= 0; y--) {
         l=1;
-        for(x=0;x<t_gio->wd && l;x++) {
-            if (t_gio->game[x][y] == ' ') {
+        for(x=0;x<t_gio->wd && l; x++) {
+            if (t_gio->campo[x][y] == ' ') {
                 l = 0;
                 count=0;
             }
         }
         if (l) {
             count++;
-            t_gio->score += p;
+            t_gio->punti += p;
             if (count == 2) {    /**quando si eliminano 3 righe*/
                 p = 3;
-                invert_pos(&t_avv, count + 1);
+                inverte(&t_avv, count + 1);
             } else if (count == 3) {    /**quando si eliminano 4 righe*/
                 p = 6;
-                invert_pos(&t_avv, count + 1);
+                inverte(&t_avv, count + 1);
             }else
                 p *= 2;       /** quando si eliminano 1 o 2 righe */
-            fall(t_gio, y);
+            elimina(t_gio, y);
             y++;
         }
     }
@@ -345,14 +358,14 @@ void check_lines_multi (struct tetris *t_gio, struct tetris *t_avv) {
 /**
  * inverte le ultime n righe del campo t: una posizione vuota diventa piena e viceversa
  */
-void invert_pos(struct tetris *t, int n) {
+void inverte(struct tetris *t, int n) {
     int x, y;
-    for(y=t->hg-1;y>t->hg-n;y--) {
-        for(x=0;x<t->wd;x++) {
-            if(t->game[x][y]== ' ')
-                t->game[x][y] = 'X';
-            else
-                t->game[x][y] = ' ';
+    for(y= t->hw - 1; y > t->hw - n; y--) {
+        for(x=0;x<t->wd; x++) {
+            if(t->campo[x][y] == ' ')
+                t->campo[x][y] = 'X';
+            else if(t->campo[x][y] != ' ')
+                t->campo[x][y] = ' ';
         }
     }
 }
@@ -365,12 +378,11 @@ void run_multi() {
     char cmd1, cmd2;
     init(&t1);
     init(&t2);
-    new_block_multi(&t1, &t2);
-    new_block_multi(&t2, &t1);
+    nuovo_multi(&t1, &t2);
+    nuovo_multi(&t2, &t1);
 
     while (t1.gameover==0 && t2.gameover==0) {
-        int c=15;
-        while (c>0) {
+        while (0==bool) {
             printf("\nGIOCATORE 1\n");
             print(&t1);
             cmd1 = chiediMossa();
@@ -378,26 +390,30 @@ void run_multi() {
             switch (cmd1) {
                 case 'a':
                     t1.x--;
-                    if (hittest(&t1))
+                    if (tocca(&t1)){
+                        bool=2;
                         t1.x++;
+                    }
                     break;
                 case 'd':
                     t1.x++;
-                    if (hittest(&t1))
+                    if (tocca(&t1)) {
                         t1.x--;
+                        bool = 2;
+                    }
                     break;
                 case 's':
-                    gravity(&t1);
-                    c--;
+                    bool= giu(&t1);
+                    printf("%d",bool);
                     break;
                 case 'r':
-                    rotate(&t1);
+                    ruota(&t1);
                     break;
             }
-            check_lines_multi(&t1, &t2);
+            controllo_multi(&t1, &t2);
         }
-        c=15;
-        while (c>0) {
+
+        while (1==bool) {
             printf("\n\nGIOCATORE 2\n");
             print(&t2);
             cmd2 = chiediMossa();
@@ -405,26 +421,29 @@ void run_multi() {
             switch (cmd2) {
                 case 'a':
                     t2.x--;
-                    if (hittest(&t2))
+                    if (tocca(&t2)) {
                         t2.x++;
+                        bool = 1;
+                    }
                     break;
                 case 'd':
                     t2.x++;
-                    if (hittest(&t2))
+                    if (tocca(&t2)) {
                         t2.x--;
+                        bool = 1;
+                    }
                     break;
                 case 's':
-                    gravity(&t2);
-                    c--;
+                    bool= giu(&t2);
+                    printf("%d",bool);
                     break;
                 case 'r':
-                    rotate(&t2);
+                    ruota(&t2);
                     break;
             }
-            check_lines_multi(&t2, &t1);
+            controllo_multi(&t2, &t1);
         }
     }
-
 
     print(&t1);
     print(&t2);

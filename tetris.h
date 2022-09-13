@@ -3,37 +3,31 @@
 
 struct tetris;
 
-void tetris_cleanup_io();
-
-void tetris_signal_quit(int);
-
-void prova( struct tetris *t);
-
-void tetris_set_ioconfig();
-
 void init(struct tetris *t);
 
 void clean(struct tetris *t);
 
 void print(struct tetris *t);
 
-void new_block(struct tetris *t);
+int tocca(struct tetris *t);
 
-void new_block_multi (struct tetris *t, struct tetris *t_avv);
+void nuovo(struct tetris *t);
 
-void print_block(struct tetris *t);
+void nuovo_multi (struct tetris *t, struct tetris *t_avv);
 
-void rotate(struct tetris *t);
+void print_blocco(struct tetris *t);
 
-void gravity(struct tetris *t);
+int ruota(struct tetris *t);
 
-void fall(struct tetris *t, int l);
+int giu(struct tetris *t);
 
-void check_lines(struct tetris *t);
+void elimina(struct tetris *t, int l);
 
-void check_lines_multi (struct tetris *t_gio, struct tetris *t_avv);
+void controllo_righe(struct tetris *t);
 
-void invert_pos(struct tetris *t, int n);
+void controllo_multi (struct tetris *t_gio, struct tetris *t_avv);
+
+void inverte(struct tetris *t, int n);
 
 void run();
 

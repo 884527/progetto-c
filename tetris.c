@@ -246,7 +246,7 @@ void controllo_righe (struct tetris *t) {
  */
 char chiediMossa()  {
     char cmd;
-    printf("Scegli la tua mossa: \nhw = sinistra \nd = destra \ns = giu' \nr = ruota hw destra \n\n");
+    printf("Scegli la tua mossa: \nhw = sinistra \nd = destra \ns = giu' \nr = ruota \n\n");
     scanf(" %c",&cmd);
     return cmd;
 }
